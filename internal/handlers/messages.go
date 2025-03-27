@@ -43,3 +43,13 @@ func MessageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 func MessageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
 	fmt.Printf("Member %s left party\n", m.UserID)
 }
+
+func MessagePollVoteAdd(s *discordgo.Session, m *discordgo.MessagePollVoteAdd) {
+	user, err := s.User(m.UserID)
+	if err != nil {
+		fmt.Printf("Could not get user %s: %v\n", m.UserID, err)
+		return
+	}
+
+	fmt.Printf("User %s voted %d in channel %s msg %s\n", user.GlobalName, m.AnswerID, m.ChannelID, m.MessageID)
+}

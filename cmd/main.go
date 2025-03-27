@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/erobx/bobBot/internal/bot"
@@ -33,6 +34,7 @@ func main() {
 	guildId := os.Getenv("GUILD_ID")
 
 	bot := bot.NewBot(token, guildId, RemoveCommands)
+
 	bot.MapMessageHandlers()
 	bot.AddIntents()
 	bot.MapCommandHandlers()
@@ -43,10 +45,32 @@ func main() {
 	}
 	defer bot.Session.Close()
 
+	// create commands after connection is opened
 	bot.CreateCommands()
-	bot.PrintCommands()
 
 	fmt.Println("Bot is now running")
+
+	go func() {
+		votes := make(map[string][]int)
+		for {
+			answerIds := []int{1, 2}
+			for _, id := range answerIds {
+				voters := bot.GetVoters(id)
+				for _, voter := range voters {
+					if _, ok := votes[voter.GlobalName]; ok {
+						votes[voter.GlobalName] = append(votes[voter.GlobalName], id)
+					} else {
+						votes[voter.GlobalName] = []int{id}
+					}
+				}
+			}
+			for username, ids := range votes {
+				fmt.Printf("User %s voted for %v\n", username, ids)
+			}
+			time.Sleep(time.Second * 5)
+		}
+	}()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-quit
