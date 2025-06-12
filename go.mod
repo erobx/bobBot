@@ -1,9 +1,9 @@
 module github.com/erobx/bobBot
 
-go 1.24.1
+go 1.24.3
 
 require (
-	github.com/bwmarrin/discordgo v0.28.2-0.20250317130722-1270b0f9cfa9
+	github.com/bwmarrin/discordgo v0.29.0
 	github.com/joho/godotenv v1.5.1
 )
 

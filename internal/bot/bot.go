@@ -8,6 +8,10 @@ import (
 	"github.com/erobx/bobBot/internal/handlers"
 )
 
+const (
+	cID = "1352366645510930523"
+)
+
 var command = &discordgo.ApplicationCommand{
 	Name:        "start",
 	Description: "Start bot",
@@ -66,10 +70,29 @@ func (b *Bot) PrintCommands() {
 	}
 }
 
-func (b *Bot) GetVoters(answerId int) []*discordgo.User {
-	users, err := b.Session.PollAnswerVoters("1352366645510930523", "1354670867174527148", answerId)
+func (b *Bot) GetPoll(msgID string) *discordgo.Poll {
+	msg, err := b.Session.ChannelMessage(cID, msgID)
 	if err != nil {
 		return nil
 	}
+
+	if msg.Poll == nil {
+		return nil
+	}
+
+	poll := msg.Poll
+	if !poll.Results.Finalized {
+		return nil
+	}
+
+	return poll
+}
+
+func (b *Bot) GetVoters(msgID string, answerId int) []*discordgo.User {
+	users, err := b.Session.PollAnswerVoters(cID, msgID, answerId)
+	if err != nil {
+		return nil
+	}
+
 	return users
 }
