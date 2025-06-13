@@ -6,21 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/erobx/bobBot/internal/bot"
 	"github.com/joho/godotenv"
 )
 
 var (
 	attendees      = make(map[string]*discordgo.User)
-	RemoveCommands = true
-
-	command = &discordgo.ApplicationCommand{
-		Name:        "start-polls",
-		Description: "Start polls",
-	}
+	RemoveCommands = false
 )
 
 func main() {
@@ -33,9 +26,8 @@ func main() {
 	token := os.Getenv("TOKEN")
 	guildId := os.Getenv("GUILD_ID")
 
-	bot := bot.NewBot(token, guildId, RemoveCommands)
+	bot := NewBot(token, guildId, RemoveCommands)
 
-	bot.MapMessageHandlers()
 	bot.AddIntents()
 	bot.MapCommandHandlers()
 
@@ -49,16 +41,21 @@ func main() {
 	bot.CreateCommands()
 
 	fmt.Println("Bot is now running")
+	// rest api stuff
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-quit
 
+	fmt.Println("Shutting down...")
 	if RemoveCommands {
 		log.Println("Removing commands...")
-		err := bot.Session.ApplicationCommandDelete(bot.Session.State.User.ID, guildId, command.ID)
-		if err != nil {
-			log.Panicf("Cannot delete '%v' command: %v", command.Name, err)
+		cmds := bot.GetCommands()
+		for _, cmd := range cmds {
+			err := bot.Session.ApplicationCommandDelete(bot.Session.State.User.ID, guildId, cmd.ID)
+			if err != nil {
+				log.Panicf("Cannot delete '%v' command: %v", cmd.Name, err)
+			}
 		}
 	}
 }
