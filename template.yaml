@@ -1,0 +1,37 @@
+Globals:
+  Function:
+    Runtime: go1.x
+    Environment:
+      Variables:
+        DISCORD_TOKEN: !Ref DiscordToken
+
+Resources:
+  BotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: bot
+      Events:
+        DiscordWebhook:
+          Type: Api
+          Properties:
+            Path: /discord/interactions
+            Method: post
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FlightsTable
+
+  FlightsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: flight_key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: flight_key
+          KeyType: RANGE
